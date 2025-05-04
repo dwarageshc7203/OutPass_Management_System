@@ -1,20 +1,14 @@
 <?php
 session_start();
-include 'db_connect.php';  // Ensure the connection is established
-
-// Check if an action is triggered (approve/decline)
+include 'db_connect.php';
 if (isset($_GET['action']) && isset($_GET['id'])) {
     $id = intval($_GET['id']);
     $action = $_GET['action'];
     $status = $action === 'approve' ? 'Approved' : 'Declined';
-
-    // Update the status in the database
     $stmt = $conn->prepare("UPDATE outpass_requests SET status=? WHERE id=?");
     $stmt->bind_param("si", $status, $id);
     $stmt->execute();
     $stmt->close();
-
-    // Get the student info from outpass_requests table directly
     $student_query = $conn->prepare("SELECT name, rollno, blockno FROM outpass_requests WHERE id=?");
     $student_query->bind_param("i", $id);
     $student_query->execute();
@@ -31,13 +25,9 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
     } else {
         $_SESSION['declined'] = "Student information not found.";
     }
-
-    // Redirect to refresh the page and show the message
     header("Location: warden_dashboard.php");
     exit();
 }
-
-// Fetch all pending outpass requests
 $result = $conn->query("SELECT * FROM outpass_requests WHERE status='Pending'");
 ?>
 
@@ -109,7 +99,6 @@ $result = $conn->query("SELECT * FROM outpass_requests WHERE status='Pending'");
 <header>
   <h1>Warden Dashboard</h1>
 </header>
-
 <div class="container">
   <?php if (isset($_SESSION['approved'])): ?>
     <div class="message">
@@ -120,7 +109,6 @@ $result = $conn->query("SELECT * FROM outpass_requests WHERE status='Pending'");
       <?php echo $_SESSION['declined']; unset($_SESSION['declined']); ?>
     </div>
   <?php endif; ?>
-
   <div class="section">
     <h2>Pending Outpass Requests</h2>
     <?php if ($result->num_rows > 0): ?>
@@ -146,6 +134,5 @@ $result = $conn->query("SELECT * FROM outpass_requests WHERE status='Pending'");
     <?php endif; ?>
   </div>
 </div>
-
 </body>
 </html>
